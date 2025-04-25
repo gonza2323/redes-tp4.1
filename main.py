@@ -4,9 +4,11 @@ import threading
 import socket
 import time
 
+
 PORT = 60000
 BUFFER_SIZE = 1024
 PROMPT = "> "
+
 
 so = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 so.bind(('0.0.0.0', PORT))
@@ -37,12 +39,14 @@ def read_messages():
                 print(template + f"dice: {msg}")
 
 
-
 def main():
     session = PromptSession()
     username = get_username()
     reading_thread = threading.Thread(target=read_messages)
     reading_thread.start()
+
+    join_msg = username + ":nuevo"
+    so.sendto(join_msg.encode(), ('255.255.255.255', PORT))
 
     while True:
         with patch_stdout():
@@ -54,11 +58,10 @@ def main():
             
             if user_input.lower() == "exit":
                 stop_event.set()
+                reading_thread.join()
                 print("Saliendo...")
                 time.sleep(1)
                 break
-    
-    reading_thread.join()
 
 
 if __name__ == "__main__":
